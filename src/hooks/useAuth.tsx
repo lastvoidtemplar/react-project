@@ -17,6 +17,7 @@ type AuthResult = {
   loading: boolean;
   authUser: AuthUser | null;
   auth: (username: string, password: string) => Promise<AuthError | null>;
+  logout: ()=>void
 };
 
 const AuthContext = React.createContext<AuthResult>({
@@ -27,6 +28,7 @@ const AuthContext = React.createContext<AuthResult>({
       errorMsg: "Invalid auth function",
     };
   },
+  logout: ()=>{}
 });
 
 type AuthProviderProps = {
@@ -91,9 +93,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     []
   );
 
+  const logout = React.useCallback(()=>{
+    sessionStorage.removeItem("user")
+    setAuthUser(null)
+  },[])
+
   const value = React.useMemo(() => {
-    return { loading, authUser, auth };
-  }, [loading, authUser, auth]);
+    return { loading, authUser, auth , logout};
+  }, [loading, authUser, auth, logout]);
 
   React.useEffect(() => {
     const value = sessionStorage.getItem("user");

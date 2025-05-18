@@ -7,6 +7,7 @@ import AuthLayout from "./components/AuthLayout";
 import Login from "./components/Login";
 import UsersView from "./components/UsersView";
 import Register from "./components/Register";
+import RecipesView from "./components/RecipesView";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
               <Route element={<AuthLayout/>}>
                 <Route path="/users" element={<UsersView/>}/>
               </Route>
+              <Route path="/recipes" element={<RecipesView/>  }/>
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>

@@ -77,3 +77,14 @@ export function validateUser(user: User): string[] {
   }
   return errors;
 }
+
+export function getDefaultProfilePicture(gender: Gender): string {
+  switch (gender) {
+    case "male":
+      return "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQIf4R5qPKHPNMyAqV-FjS_OTBB8pfUV29Phg&s";
+    case "female":
+      return "https://img.freepik.com/premium-vector/default-female-user-profile-icon-vector-illustration_276184-169.jpg";
+    case "croissant":
+      return "https://cdn-icons-png.flaticon.com/512/7627/7627796.png";
+  }
+}

@@ -58,7 +58,7 @@ function Login() {
         </NavLink>
       </h1>
       <Input inputType="text" labelText="Username: " ref={usernameRef} />
-      <Input inputType="text" labelText="Password: " ref={passwordRef} />
+      <Input inputType="password" labelText="Password: " ref={passwordRef} />
       <p className="text-red-600">{error}</p>
       <Button>Login</Button>
     </form>

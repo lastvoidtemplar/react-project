@@ -1,10 +1,11 @@
 import React, { type FormEvent } from "react";
-import {nanoid} from "nanoid"
+import { nanoid } from "nanoid";
 import Button from "./Button";
 import Input from "./Input";
 import Select from "./Select";
 import TextArea from "./TextArea";
 import {
+  getDefaultProfilePicture,
   validateUser,
   type Gender,
   type Role,
@@ -32,67 +33,61 @@ function Register() {
     return location.state.from;
   }, [location]);
 
-  const onSubmit = React.useCallback(async (e: FormEvent) => {
-    e.preventDefault();
+  const onSubmit = React.useCallback(
+    async (e: FormEvent) => {
+      e.preventDefault();
 
-    const newUser: User = {
-      id: nanoid(24),
-      name: nameRef.current?.value || "",
-      username: usernameRef.current?.value || "",
-      password: passwordRef.current?.value || "",
-      gender: genderRef.current?.value as Gender,
-      role: roleRef.current?.value as Role,
-      profile_picture: profilePictureRef.current?.value || "",
-      description: descriptionRef.current?.value || "",
-      status: "active",
-      created_at: new Date().toISOString().split("T")[0],
-      updated_at: new Date().toISOString().split("T")[0],
-    };
+      const newUser: User = {
+        id: nanoid(24),
+        name: nameRef.current?.value || "",
+        username: usernameRef.current?.value || "",
+        password: passwordRef.current?.value || "",
+        gender: genderRef.current?.value as Gender,
+        role: roleRef.current?.value as Role,
+        profile_picture: profilePictureRef.current?.value || "",
+        description: descriptionRef.current?.value || "",
+        status: "active",
+        created_at: new Date().toISOString().split("T")[0],
+        updated_at: new Date().toISOString().split("T")[0],
+      };
 
-    if (newUser.profile_picture === ""){
-        switch (newUser.gender){
-            case "male":
-                newUser.profile_picture = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQIf4R5qPKHPNMyAqV-FjS_OTBB8pfUV29Phg&s"
-                break
-            case "female":
-                newUser.profile_picture = "https://img.freepik.com/premium-vector/default-female-user-profile-icon-vector-illustration_276184-169.jpg"
-                break
-            case "croissant":
-                newUser.profile_picture = "https://cdn-icons-png.flaticon.com/512/7627/7627796.png"
+      if (newUser.profile_picture === "") {
+        newUser.profile_picture = getDefaultProfilePicture(newUser.gender);
+      }
+
+      const errors = validateUser(newUser);
+      if (errors.length !== 0) {
+        setErrors(errors);
+        return;
+      }
+
+      const url = new URL("/users", API_URL);
+      try {
+        const resp = await fetch(url, {
+          method: "post",
+          body: JSON.stringify(newUser),
+        });
+        if (!resp.ok) {
+          setErrors(["Error while posting"]);
+          return;
         }
-    }
-
-    const errors = validateUser(newUser);
-    if (errors.length !== 0) {
-      setErrors(errors);
-      return;
-    }
-
-    const url = new URL("/users", API_URL);
-    try {
-      const resp = await fetch(url, {
-        method: "post",
-        body: JSON.stringify(newUser),
-      });
-      if (!resp.ok) {
+      } catch (error) {
+        console.log(error);
         setErrors(["Error while posting"]);
         return;
       }
-    } catch (error) {
-      console.log(error);
-      setErrors(["Error while posting"]);
-      return;
-    }
 
-    const err = await auth(newUser.username, newUser.password);
-    if (err != null) {
-      setErrors([err.errorMsg]);
-      return;
-    }
-    navigate(from, {
-      replace: true,
-    });
-  }, [auth, from, navigate]);
+      const err = await auth(newUser.username, newUser.password);
+      if (err != null) {
+        setErrors([err.errorMsg]);
+        return;
+      }
+      navigate(from, {
+        replace: true,
+      });
+    },
+    [auth, from, navigate]
+  );
 
   return (
     <form className="flex flex-col gap-2 min-w-96 p-4" onSubmit={onSubmit}>
