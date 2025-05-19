@@ -1,44 +1,42 @@
 import { X } from "lucide-react";
-import React, { type FormEvent } from "react";
+import React from "react";
 
 type InputListProps = {
-  initialTags: string[]
-  onChange?: (e: string[]) => void;
-  labelText?: string
-  disabled?: boolean
+  tags: string[];
+  setTags: React.Dispatch<React.SetStateAction<string[]>>;
+  labelText?: string;
+  disabled?: boolean;
 };
 
-function InputList({initialTags, onChange,labelText, disabled }: InputListProps) {
-  const [tags, setTags] = React.useState<string[]>(initialTags);
+function InputList({ tags, setTags, labelText, disabled }: InputListProps) {
   const inputRef = React.useRef<HTMLInputElement>(null);
-  
-  React.useLayoutEffect(()=>{
-    setTags(initialTags)
-  }, [initialTags])
 
-  React.useEffect(() => {
-    if (onChange) {
-      onChange(tags);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onChange, tags.length]);
-
-  const addTag = React.useCallback((e: FormEvent) => {
-    e.preventDefault();
-    if (inputRef.current) {
-      const newTag = inputRef.current.value.trim();
-      if (newTag && !tags.includes(newTag)) {
-        setTags((tags) => {
-          return [...tags, newTag];
-        });
+  const addTag = React.useCallback(
+    () => {
+      if (inputRef.current) {
+        const newTag = inputRef.current.value.trim();
+        if (newTag && !tags.includes(newTag)) {
+          setTags((oldTags) => [...oldTags, newTag]);
+        }
+        inputRef.current.value = "";
       }
-      inputRef.current.value = "";
+    },
+    [tags, setTags]
+  );
+
+  const OnDelete = React.useCallback((ind:number) => {
+    setTags(oldTags=>oldTags.filter((_, i)=>i!==ind))
+  },[setTags])
+
+  const onKeyDown = React.useCallback(((e: React.KeyboardEvent<HTMLInputElement>)=>{
+    if (e.key === "Enter"){
+      addTag()
     }
-  }, [tags]);
+  }),[addTag])
 
   return (
     <div className="basis-2/5 flex flex-wrap items-center gap-1 p-1 border-2 rounded-md">
-      <label>{labelText} </label>
+      <label>{labelText}</label>
       {tags.map((tag, ind) => (
         <div
           key={ind}
@@ -48,16 +46,18 @@ function InputList({initialTags, onChange,labelText, disabled }: InputListProps)
           <button
             className="cursor-pointer"
             onClick={() => {
-              setTags((tags) => tags.filter((t) => t !== tag));
+              OnDelete(ind)
             }}
           >
             <X size={15} />
           </button>
         </div>
       ))}
-      {(!disabled)&&<form onSubmit={addTag}>
-        <input type="text" ref={inputRef} className="p-1" />
-      </form>}
+      {!disabled && (
+        <div>
+          <input type="text" ref={inputRef} className="p-1" onKeyDown={onKeyDown} />
+        </div>
+      )}
     </div>
   );
 }

@@ -90,7 +90,7 @@ function RecipesView() {
             refetchRecipes();
             dialogRef.current?.close();
           }}
-          userId={authUser!.id}
+          userId={authUser?.id}
           disabled={!!recipe && authUser?.id !== recipe?.user_id}
         />
       </dialog>
