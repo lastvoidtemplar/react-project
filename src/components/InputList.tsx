@@ -11,28 +11,31 @@ type InputListProps = {
 function InputList({ tags, setTags, labelText, disabled }: InputListProps) {
   const inputRef = React.useRef<HTMLInputElement>(null);
 
-  const addTag = React.useCallback(
-    () => {
-      if (inputRef.current) {
-        const newTag = inputRef.current.value.trim();
-        if (newTag && !tags.includes(newTag)) {
-          setTags((oldTags) => [...oldTags, newTag]);
-        }
-        inputRef.current.value = "";
+  const addTag = React.useCallback(() => {
+    if (inputRef.current) {
+      const newTag = inputRef.current.value.trim();
+      if (newTag && !tags.includes(newTag)) {
+        setTags((oldTags) => [...oldTags, newTag]);
       }
+      inputRef.current.value = "";
+    }
+  }, [tags, setTags]);
+
+  const OnDelete = React.useCallback(
+    (ind: number) => {
+      setTags((oldTags) => oldTags.filter((_, i) => i !== ind));
     },
-    [tags, setTags]
+    [setTags]
   );
 
-  const OnDelete = React.useCallback((ind:number) => {
-    setTags(oldTags=>oldTags.filter((_, i)=>i!==ind))
-  },[setTags])
-
-  const onKeyDown = React.useCallback(((e: React.KeyboardEvent<HTMLInputElement>)=>{
-    if (e.key === "Enter"){
-      addTag()
-    }
-  }),[addTag])
+  const onKeyDown = React.useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter") {
+        addTag();
+      }
+    },
+    [addTag]
+  );
 
   return (
     <div className="basis-2/5 flex flex-wrap items-center gap-1 p-1 border-2 rounded-md">
@@ -46,7 +49,9 @@ function InputList({ tags, setTags, labelText, disabled }: InputListProps) {
           <button
             className="cursor-pointer"
             onClick={() => {
-              OnDelete(ind)
+              if (!disabled) {
+                OnDelete(ind);
+              }
             }}
           >
             <X size={15} />
@@ -55,7 +60,12 @@ function InputList({ tags, setTags, labelText, disabled }: InputListProps) {
       ))}
       {!disabled && (
         <div>
-          <input type="text" ref={inputRef} className="p-1" onKeyDown={onKeyDown} />
+          <input
+            type="text"
+            ref={inputRef}
+            className="p-1"
+            onKeyDown={onKeyDown}
+          />
         </div>
       )}
     </div>

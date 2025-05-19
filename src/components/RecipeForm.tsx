@@ -275,8 +275,8 @@ function EditRecipeForm({ recipe, callback, disabled }: EditRecipeFormProps) {
         ref={longDescriptionRef}
         disabled={disabled}
       />
-      <InputList tags={products} setTags={setProducts} labelText="Products: " />
-      <InputList tags={tags} setTags={setTags} labelText="Tags: " />
+      <InputList tags={products} setTags={setProducts} labelText="Products: "  disabled={disabled}/>
+      <InputList tags={tags} setTags={setTags} labelText="Tags: " disabled={disabled}/>
       <div className="flex gap-2">
         <Input
           inputType="text"
@@ -291,7 +291,7 @@ function EditRecipeForm({ recipe, callback, disabled }: EditRecipeFormProps) {
           disabled
         />
       </div>
-      <ul>
+      <ul className="text-red-600">
         {errors.map((err, ind) => {
           return <li key={ind}>{err}</li>;
         })}

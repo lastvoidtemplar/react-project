@@ -19,8 +19,6 @@ function Select({ options, ref, labelFor, labelText, onChange }: SelectProps) {
         ref={ref}
         onChange={(e) => {
           if (onChange) {
-            console.log("Select menu", e);
-            
             onChange(e.target.value);
           }
         }}

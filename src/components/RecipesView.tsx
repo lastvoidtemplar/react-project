@@ -7,6 +7,8 @@ import Button from "./Button";
 import type { User } from "../common/user";
 import { PencilLine, Trash2 } from "lucide-react";
 import RecipeForm from "./RecipeForm";
+import Select from "./Select";
+import InputList from "./InputList";
 
 const urlRecipes = new URL("/recipes", API_URL);
 const urlUsers = new URL("/users", API_URL);
@@ -53,6 +55,39 @@ function RecipesView() {
   const dialogRef = React.useRef<HTMLDialogElement>(null);
   const [recipe, setRecipe] = React.useState<Recipe | undefined>(undefined);
 
+  const usersName = React.useMemo(() => {
+    if (!users) {
+      return ["All"];
+    }
+    const names = users.map((user) => user.name);
+    names.unshift("All");
+    return names;
+  }, [users]);
+
+  const authorRef = React.useRef<HTMLSelectElement>(null);
+  const viewRef = React.useRef<HTMLSelectElement>(null);
+  const sortRef = React.useRef<HTMLSelectElement>(null);
+  const [author, setAuthor] = React.useState<string>("All");
+  const [tags, setTags] = React.useState<string[]>([]);
+  const [view, setView] = React.useState<string>("All");
+  const viewOptions = React.useMemo(() => ["All","1", "10", "20", "50"], []);
+  const [sort, setSort] = React.useState<string>("Asc");
+  const sortOptions = React.useMemo(() => ["Asc", "Desc"], []);
+
+  const processedRecipes = React.useMemo(() => {
+    if (!recipes) {
+      return [];
+    }
+    return filterAndSortRecipes(
+      recipes,
+      view,
+      sort,
+      mapUserIdsToUserNames,
+      author,
+      tags
+    );
+  }, [recipes, view, sort, mapUserIdsToUserNames, author, tags]);
+
   if (loadingRecipes || loadingUsers) {
     return <div>Loading</div>;
   }
@@ -80,6 +115,28 @@ function RecipesView() {
           </Button>
         )}
       </div>
+      <br />
+      <div className="flex justify-around">
+        <Select
+          options={viewOptions}
+          onChange={(v) => setView(v)}
+          labelText="Views: "
+          ref={viewRef}
+        />
+        <Select
+          options={sortOptions}
+          onChange={(s) => setSort(s)}
+          labelText="Sort: "
+          ref={sortRef}
+        />
+        <Select
+          options={usersName}
+          onChange={(a) => setAuthor(a)}
+          labelText="Author: "
+          ref={authorRef}
+        />
+        <InputList tags={tags} setTags={setTags} labelText="Tags: " />
+      </div>
       <dialog
         className="absolute top-1/2 left-1/2 -translate-1/2"
         ref={dialogRef}
@@ -95,30 +152,30 @@ function RecipesView() {
         />
       </dialog>
       <div className="flex flex-wrap p-8 gap-4">
-        {recipes &&
-          recipes.map((recipe) => {
-            return (
-              <RecipeView
-                key={recipe.id}
-                id={recipe.id}
-                authorName={
-                  mapUserIdsToUserNames.get(recipe.user_id) || "Unknown"
-                }
-                name={recipe.name}
-                picture={recipe.picture}
-                cookTime={recipe.cook_time}
-                shortDesc={recipe.short_description}
-                refetch={refetchRecipes}
-                edit={() => {
-                  setRecipe(() => recipe);
-                  dialogRef.current?.showModal();
-                }}
-                allowMutation={
-                  authUser?.role === "admin" || authUser?.id === recipe.user_id
-                }
-              />
-            );
-          })}
+        {processedRecipes.map((recipe) => {
+          return (
+            <RecipeView
+              key={recipe.id}
+              id={recipe.id}
+              authorName={
+                mapUserIdsToUserNames.get(recipe.user_id) || "Unknown"
+              }
+              name={recipe.name}
+              picture={recipe.picture}
+              cookTime={recipe.cook_time}
+              shortDesc={recipe.short_description}
+              tags={recipe.tags}
+              refetch={refetchRecipes}
+              edit={() => {
+                setRecipe(() => recipe);
+                dialogRef.current?.showModal();
+              }}
+              allowMutation={
+                authUser?.role === "admin" || authUser?.id === recipe.user_id
+              }
+            />
+          );
+        })}
       </div>
     </div>
   );
@@ -131,6 +188,7 @@ type RecipeViewProps = {
   picture: string;
   cookTime: number;
   shortDesc: string;
+  tags: string[];
   refetch: () => void;
   edit: () => void;
   allowMutation: boolean;
@@ -143,6 +201,7 @@ function RecipeView({
   picture,
   cookTime,
   shortDesc,
+  tags,
   refetch,
   edit,
   allowMutation,
@@ -157,7 +216,8 @@ function RecipeView({
       <h1>Name: {name}</h1>
       <h2>Author: {authorName}</h2>
       <h3>Cook Time: {cookTime}</h3>
-      <p>{summary}</p>
+      <h3>Tags: {tags.join(", ")}</h3>
+      <p>Summary: {summary}</p>
 
       <div className="w-full flex justify-evenly gap-2">
         <Button onClick={edit}>
@@ -184,6 +244,52 @@ async function deleteRecipe(id: string) {
   await fetch(url, {
     method: "delete",
   });
+}
+
+function filterAndSortRecipes(
+  recipes: Recipe[],
+  view: string,
+  sort: string,
+  mapUserIdsToUserNames: Map<string, string>,
+  authorName: string,
+  tags: string[]
+): Recipe[] {
+  const filterRecipes = recipes.filter((recipe) => {
+    if (authorName !== "All") {
+      const recipeAuthorName = mapUserIdsToUserNames.get(recipe.user_id);
+      if (recipeAuthorName !== authorName) {
+        return false;
+      }
+    }
+    const isTagsSubset = tags.reduce((total, tag) => {
+      return total && recipe.tags.includes(tag);
+    }, true);
+
+    if (!isTagsSubset) {
+      return false;
+    }
+    return true;
+  });
+
+  const sortedRecipes = filterRecipes.sort((a, b) => {
+    const m = sort === "Asc" ? 1 : -1;
+    if (a.created_at > b.created_at) {
+      return m;
+    } else if (a.created_at < b.created_at) {
+      return -m;
+    } else {
+      return 0;
+    }
+  });
+
+  if (view === "All") {
+    return sortedRecipes;
+  }
+
+  const take = parseInt(view);
+  const slicedRecipes = sortedRecipes.slice(0, take);
+
+  return slicedRecipes;
 }
 
 export default RecipesView;
