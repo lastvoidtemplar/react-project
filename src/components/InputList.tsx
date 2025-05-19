@@ -33,8 +33,11 @@ function InputList({ tags, setTags, labelText, disabled }: InputListProps) {
       if (e.key === "Enter") {
         addTag();
       }
+      if (e.key === "Backspace" && tags.length !== 0 &&inputRef.current?.value === ""){
+        OnDelete(tags.length-1)
+      }
     },
-    [addTag]
+    [tags, addTag, OnDelete]
   );
 
   return (
