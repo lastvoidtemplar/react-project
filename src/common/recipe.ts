@@ -23,6 +23,10 @@ export function validateRecipe(recipe: Recipe): string[] {
     errors.push("Name length must less than 80!");
   }
 
+  if (recipe.short_description.length > 256) {
+    errors.push("Short description length must less than 256!");
+  }
+
   if (recipe.cook_time <= 0) {
     errors.push("Cook time must be positive number!");
   }
@@ -30,6 +34,11 @@ export function validateRecipe(recipe: Recipe): string[] {
   if (recipe.products.length === 0) {
     errors.push("Products are required!");
   }
+
+  if (recipe.long_description.length > 2024) {
+    errors.push("Long description length must less than 2024!");
+  }
+
   try {
     if (recipe.picture === "") {
       errors.push("Picture url is required!");
