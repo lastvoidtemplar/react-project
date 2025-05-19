@@ -17,15 +17,16 @@ import { API_URL } from "../common/api";
 type UserFormProps = {
   user?: User;
   callback?: () => void;
+  opened: boolean;
 };
 
-function UserForm({ user, callback }: UserFormProps) {
+function UserForm({ user, callback, opened }: UserFormProps) {
   return (
     <>
       {user === undefined ? (
         <CreateUserForm callback={callback} />
       ) : (
-        <EditUserForm user={user} callback={callback}/>
+        <EditUserForm user={user} callback={callback} opened={opened} />
       )}
     </>
   );
@@ -157,9 +158,10 @@ function CreateUserForm({ callback }: CreateUserFormProps) {
 type EditUserFormProps = {
   user: User;
   callback?: () => void;
+  opened: boolean;
 };
 
-function EditUserForm({ user, callback }: EditUserFormProps) {
+function EditUserForm({ user, callback, opened }: EditUserFormProps) {
   const idRef = React.useRef<HTMLInputElement>(null);
   const nameRef = React.useRef<HTMLInputElement>(null);
   const usernameRef = React.useRef<HTMLInputElement>(null);
@@ -175,41 +177,43 @@ function EditUserForm({ user, callback }: EditUserFormProps) {
   const [errors, setErrors] = React.useState<string[]>([]);
 
   React.useLayoutEffect(() => {
-    if (idRef.current) {
-      idRef.current.value = user.id;
+    if (opened) {
+      if (idRef.current) {
+        idRef.current.value = user.id;
+      }
+      if (nameRef.current) {
+        nameRef.current.value = user.name;
+      }
+      if (usernameRef.current) {
+        usernameRef.current.value = user.username;
+      }
+      if (passwordRef.current) {
+        passwordRef.current.value = user.password;
+      }
+      if (genderRef.current) {
+        genderRef.current.value = user.gender;
+      }
+      if (profilePictureRef.current) {
+        profilePictureRef.current.value = user.profile_picture;
+      }
+      if (descriptionRef.current) {
+        descriptionRef.current.value = user.description;
+      }
+      if (roleRef.current) {
+        roleRef.current.value = user.role;
+      }
+      if (statusRef.current) {
+        statusRef.current.value = user.status;
+      }
+      if (createdByRef.current) {
+        createdByRef.current.value = user.created_at;
+      }
+      if (updateByRef.current) {
+        updateByRef.current.value = user.updated_at;
+      }
+      setErrors([]);
     }
-    if (nameRef.current) {
-      nameRef.current.value = user.name;
-    }
-    if (usernameRef.current) {
-      usernameRef.current.value = user.username;
-    }
-    if (passwordRef.current) {
-      passwordRef.current.value = user.password;
-    }
-    if (genderRef.current) {
-      genderRef.current.value = user.gender;
-    }
-    if (profilePictureRef.current) {
-      profilePictureRef.current.value = user.profile_picture;
-    }
-    if (descriptionRef.current) {
-      descriptionRef.current.value = user.description;
-    }
-    if (roleRef.current) {
-      roleRef.current.value = user.role;
-    }
-    if (statusRef.current) {
-      statusRef.current.value = user.status;
-    }
-    if (createdByRef.current) {
-      createdByRef.current.value = user.created_at;
-    }
-    if (updateByRef.current) {
-      updateByRef.current.value = user.updated_at;
-    }
-    setErrors([]);
-  }, [user]);
+  }, [user, opened]);
 
   const onSubmit = React.useCallback(
     async (e: FormEvent) => {
@@ -265,7 +269,7 @@ function EditUserForm({ user, callback }: EditUserFormProps) {
   return (
     <form className="flex flex-col gap-2 min-w-96 p-4" onSubmit={onSubmit}>
       <h1 className="text-2xl text-center">Edit User Form</h1>
-     <Input inputType="text" labelText="Id" ref={idRef} disabled />
+      <Input inputType="text" labelText="Id" ref={idRef} disabled />
       <Input inputType="text" labelText="Name" ref={nameRef} />
       <Input inputType="text" labelText="Username" ref={usernameRef} />
       <Input inputType="text" labelText="Password" ref={passwordRef} />
@@ -276,7 +280,7 @@ function EditUserForm({ user, callback }: EditUserFormProps) {
       />
       <TextArea labelText="Description" ref={descriptionRef} />
       <div className="flex gap-1 justify-around">
-       <Select
+        <Select
           options={["male", "female", "croissant"]}
           labelText="Gender: "
           ref={genderRef}

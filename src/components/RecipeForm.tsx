@@ -12,15 +12,21 @@ type RecipeFormProps = {
   callback?: () => void;
   userId?: string;
   disabled: boolean;
+  opened: boolean
 };
 
-function RecipeForm({ recipe, callback, userId , disabled}: RecipeFormProps) {
+function RecipeForm({ recipe, callback, userId, disabled, opened }: RecipeFormProps) {
   return (
     <>
       {recipe === undefined ? (
         <CreateRecipeForm callback={callback} userId={userId} />
       ) : (
-        <EditRecipeForm callback={callback} recipe={recipe} disabled={disabled}/>
+        <EditRecipeForm
+          callback={callback}
+          recipe={recipe}
+          disabled={disabled}
+          opened={opened}
+        />
       )}
     </>
   );
@@ -145,9 +151,15 @@ type EditRecipeFormProps = {
   recipe: Recipe;
   callback?: () => void;
   disabled: boolean;
+  opened: boolean;
 };
 
-function EditRecipeForm({ recipe, callback, disabled }: EditRecipeFormProps) {
+function EditRecipeForm({
+  recipe,
+  callback,
+  disabled,
+  opened,
+}: EditRecipeFormProps) {
   const idRef = React.useRef<HTMLInputElement>(null);
   const userIdRef = React.useRef<HTMLInputElement>(null);
   const nameRef = React.useRef<HTMLInputElement>(null);
@@ -162,38 +174,41 @@ function EditRecipeForm({ recipe, callback, disabled }: EditRecipeFormProps) {
   const [tags, setTags] = React.useState<string[]>([]);
   const [errors, setErrors] = React.useState<string[]>([]);
 
+  
   React.useLayoutEffect(() => {
-    if (idRef.current) {
-      idRef.current.value = recipe.id;
+    if (opened) {
+      if (idRef.current) {
+        idRef.current.value = recipe.id;
+      }
+      if (userIdRef.current) {
+        userIdRef.current.value = recipe.user_id;
+      }
+      if (nameRef.current) {
+        nameRef.current.value = recipe.name;
+      }
+      if (shortDescriptionRef.current) {
+        shortDescriptionRef.current.value = recipe.short_description;
+      }
+      if (cookTimeRef.current) {
+        cookTimeRef.current.value = recipe.cook_time.toString();
+      }
+      if (pictureRef.current) {
+        pictureRef.current.value = recipe.picture;
+      }
+      if (longDescriptionRef.current) {
+        longDescriptionRef.current.value = recipe.long_description;
+      }
+      if (createdByRef.current) {
+        createdByRef.current.value = recipe.created_at;
+      }
+      if (updateByRef.current) {
+        updateByRef.current.value = recipe.updated_at;
+      }
+      setProducts(recipe.products);
+      setTags(recipe.tags);
+      setErrors([]);
     }
-    if (userIdRef.current) {
-      userIdRef.current.value = recipe.user_id;
-    }
-    if (nameRef.current) {
-      nameRef.current.value = recipe.name;
-    }
-    if (shortDescriptionRef.current) {
-      shortDescriptionRef.current.value = recipe.short_description;
-    }
-    if (cookTimeRef.current) {
-      cookTimeRef.current.value = recipe.cook_time.toString();
-    }
-    if (pictureRef.current) {
-      pictureRef.current.value = recipe.picture;
-    }
-    if (longDescriptionRef.current) {
-      longDescriptionRef.current.value = recipe.long_description;
-    }
-    if (createdByRef.current) {
-      createdByRef.current.value = recipe.created_at;
-    }
-    if (updateByRef.current) {
-      updateByRef.current.value = recipe.updated_at;
-    }
-    setProducts(recipe.products);
-    setTags(recipe.tags);
-    setErrors([]);
-  }, [recipe]);
+  }, [recipe, opened]);
 
   const onSubmit = React.useCallback(
     async (e: FormEvent) => {
@@ -275,8 +290,18 @@ function EditRecipeForm({ recipe, callback, disabled }: EditRecipeFormProps) {
         ref={longDescriptionRef}
         disabled={disabled}
       />
-      <InputList tags={products} setTags={setProducts} labelText="Products: "  disabled={disabled}/>
-      <InputList tags={tags} setTags={setTags} labelText="Tags: " disabled={disabled}/>
+      <InputList
+        tags={products}
+        setTags={setProducts}
+        labelText="Products: "
+        disabled={disabled}
+      />
+      <InputList
+        tags={tags}
+        setTags={setTags}
+        labelText="Tags: "
+        disabled={disabled}
+      />
       <div className="flex gap-2">
         <Input
           inputType="text"

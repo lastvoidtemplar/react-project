@@ -17,6 +17,7 @@ function UsersView() {
   });
 
   const dialogRef = React.useRef<HTMLDialogElement>(null);
+  const [opened, setOpened] = React.useState(false)
   const [user, setUser] = React.useState<User | undefined>(undefined);
 
   if (authUser === null || authUser.role !== "admin") {
@@ -38,6 +39,7 @@ function UsersView() {
         <Button
           onClick={() => {
             setUser(() => undefined);
+            setOpened(true)
             dialogRef.current?.showModal();
           }}
         >
@@ -47,6 +49,7 @@ function UsersView() {
       <dialog
         className="absolute top-1/2 left-1/2 -translate-1/2"
         ref={dialogRef}
+        onClose={()=>{setOpened(false)}}
       >
         <UserForm
           user={user}
@@ -54,6 +57,7 @@ function UsersView() {
             refetch();
             dialogRef.current?.close();
           }}
+          opened={opened}
         />
       </dialog>
       <div className="flex flex-wrap p-8 gap-4">
@@ -71,6 +75,7 @@ function UsersView() {
                 refetch={refetch}
                 edit={() => {
                   setUser(() => user);
+                  setOpened(true)
                   dialogRef.current?.showModal();
                 }}
                 allowDeletion={user.id !== authUser?.id}

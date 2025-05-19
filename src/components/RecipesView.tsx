@@ -53,6 +53,7 @@ function RecipesView() {
   }, [users]);
 
   const dialogRef = React.useRef<HTMLDialogElement>(null);
+  const [opened, setOpened] = React.useState(false)
   const [recipe, setRecipe] = React.useState<Recipe | undefined>(undefined);
 
   const usersName = React.useMemo(() => {
@@ -108,6 +109,7 @@ function RecipesView() {
           <Button
             onClick={() => {
               setRecipe(() => undefined);
+              setOpened(true)
               dialogRef.current?.showModal();
             }}
           >
@@ -140,6 +142,7 @@ function RecipesView() {
       <dialog
         className="absolute top-1/2 left-1/2 -translate-1/2"
         ref={dialogRef}
+        onClose={()=>{setOpened(false)}}
       >
         <RecipeForm
           recipe={recipe}
@@ -149,6 +152,7 @@ function RecipesView() {
           }}
           userId={authUser?.id}
           disabled={!!recipe && authUser?.id !== recipe?.user_id}
+          opened={opened}
         />
       </dialog>
       <div className="flex flex-wrap p-8 gap-4">
@@ -168,6 +172,7 @@ function RecipesView() {
               refetch={refetchRecipes}
               edit={() => {
                 setRecipe(() => recipe);
+                setOpened(true)
                 dialogRef.current?.showModal();
               }}
               allowMutation={
